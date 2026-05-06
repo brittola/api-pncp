@@ -1,0 +1,271 @@
+openapi: 3.0.0
+info:
+  title: API PNCP
+  version: 1.0.0
+  description: API REST para consulta de contratações públicas do PNCP com autenticação JWT.
+
+servers:
+  - url: http://localhost:3000
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+
+    ValidationError:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              msg:
+                type: string
+              path:
+                type: string
+              location:
+                type: string
+
+    RegisterBody:
+      type: object
+      required:
+        - nome
+        - email
+        - senha
+        - cnpj
+      properties:
+        nome:
+          type: string
+          example: Empresa X Ltda
+        email:
+          type: string
+          format: email
+          example: contato@empresa.com
+        senha:
+          type: string
+          minLength: 6
+          example: senha123
+        cnpj:
+          type: string
+          minLength: 14
+          maxLength: 14
+          example: "11222333000181"
+
+    LoginBody:
+      type: object
+      required:
+        - email
+        - senha
+      properties:
+        email:
+          type: string
+          format: email
+          example: contato@empresa.com
+        senha:
+          type: string
+          example: senha123
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 64a1b2c3d4e5f6a7b8c9d0e1
+        nome:
+          type: string
+          example: Empresa X Ltda
+        email:
+          type: string
+          example: contato@empresa.com
+
+    TokenResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+    OrgaoEntidade:
+      type: object
+      properties:
+        cnpj:
+          type: string
+        razaoSocial:
+          type: string
+        poderId:
+          type: string
+        esferaId:
+          type: string
+
+    UnidadeOrgao:
+      type: object
+      properties:
+        ufNome:
+          type: string
+        codigoUnidade:
+          type: string
+        ufSigla:
+          type: string
+        municipioNome:
+          type: string
+        nomeUnidade:
+          type: string
+        codigoIbge:
+          type: string
+
+    Contratacao:
+      type: object
+      properties:
+        _id:
+          type: string
+        numeroControlePNCP:
+          type: string
+        processo:
+          type: string
+        objetoCompra:
+          type: string
+        modalidadeNome:
+          type: string
+        valorTotalEstimado:
+          type: number
+        anoCompra:
+          type: integer
+        dataInclusao:
+          type: string
+          format: date-time
+        dataPublicacaoPncp:
+          type: string
+          format: date-time
+        orgaoEntidade:
+          $ref: '#/components/schemas/OrgaoEntidade'
+        unidadeOrgao:
+          $ref: '#/components/schemas/UnidadeOrgao'
+
+    PaginatedContratacoes:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contratacao'
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 19
+        totalPages:
+          type: integer
+          example: 2
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Cadastro de usuário
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterBody'
+      responses:
+        '201':
+          description: Usuário criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '409':
+          description: E-mail já cadastrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Login e geração de token JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginBody'
+      responses:
+        '200':
+          description: Login realizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /contratacoes:
+    get:
+      tags:
+        - Contratações
+      summary: Listagem paginada de contratações
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          required: false
+          description: Número da página (10 itens por página)
+      responses:
+        '200':
+          description: Lista de contratações
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedContratacoes'
+        '401':
+          description: Token não fornecido ou inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Parâmetro page inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
