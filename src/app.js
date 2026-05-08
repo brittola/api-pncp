@@ -3,6 +3,7 @@ const express = require('express');
 const swaggerUi = require('swagger-ui-express');
 const connect = require('./config/db');
 const swaggerSpec = require('./config/swagger');
+const cors = require('cors');
 
 const authRoutes = require('./routes/auth.routes');
 const contratacaoRoutes = require('./routes/contratacao.routes');
@@ -10,6 +11,8 @@ const contratacaoRoutes = require('./routes/contratacao.routes');
 const app = express();
 
 app.use(express.json());
+
+app.use(cors());
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
