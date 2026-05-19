@@ -4,9 +4,9 @@ const User = require('../models/User');
 const register = async (req, res) => {
   const { nome, email, senha, cnpj } = req.body;
 
-  const exists = await User.findOne({ email });
+  const exists = await User.findOne({ $or: [{ email }, { cnpj }] });
   if (exists) {
-    return res.status(409).json({ error: 'E-mail já cadastrado.' });
+    return res.status(409).json({ error: 'E-mail ou CNPJ já cadastrado.' });
   }
 
   const user = await User.create({ nome, email, senha, cnpj });

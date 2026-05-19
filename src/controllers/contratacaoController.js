@@ -20,4 +20,15 @@ const list = async (req, res) => {
   });
 };
 
-module.exports = { list };
+const findById = async (req, res) => {
+  const { id } = req.params;
+
+  const data = await Contratacao.findById(id).lean();
+  if (!data) {
+    return res.status(404).json({ error: 'Contratação não encontrada.' });
+  }
+
+  return res.json({ data });
+};
+
+module.exports = { list, findById };

@@ -269,3 +269,46 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationError'
+
+  /contratacoes/{id}:
+    get:
+      tags:
+        - Contratações
+      summary: Busca uma contratação por id
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ObjectId da contratação
+      responses:
+        '200':
+          description: Contratação encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Contratacao'
+        '401':
+          description: Token não fornecido ou inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Contratação não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: id em formato inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
