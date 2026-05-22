@@ -250,6 +250,74 @@ paths:
             default: 1
           required: false
           description: Número da página (10 itens por página)
+        - in: query
+          name: uf
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 2
+            example: PE
+          required: false
+          description: Filtra por UF (sigla com 2 letras) em unidadeOrgao.ufSigla
+        - in: query
+          name: valorMin
+          schema:
+            type: number
+            minimum: 0
+          required: false
+          description: Valor mínimo (valorTotalEstimado >= valorMin)
+        - in: query
+          name: valorMax
+          schema:
+            type: number
+            minimum: 0
+            example: 80000
+          required: false
+          description: Valor máximo (valorTotalEstimado <= valorMax)
+        - in: query
+          name: q
+          schema:
+            type: string
+            example: carimbo
+          required: false
+          description: Busca textual (case-insensitive) em objetoCompra
+        - in: query
+          name: modalidade
+          schema:
+            type: integer
+            example: 8
+          required: false
+          description: Filtra por modalidadeId (ex.- 6 Pregão, 8 Dispensa)
+        - in: query
+          name: ano
+          schema:
+            type: integer
+            example: 2026
+          required: false
+          description: Filtra por anoCompra
+        - in: query
+          name: situacao
+          schema:
+            type: integer
+            example: 1
+          required: false
+          description: Filtra por situacaoCompraId (ex.- 1 Divulgada no PNCP)
+        - in: query
+          name: dataPublicacaoInicio
+          schema:
+            type: string
+            format: date
+            example: "2026-03-01"
+          required: false
+          description: Data inicial (ISO 8601) — dataPublicacaoPncp >= valor
+        - in: query
+          name: dataPublicacaoFim
+          schema:
+            type: string
+            format: date
+            example: "2026-03-31"
+          required: false
+          description: Data final (ISO 8601) — dataPublicacaoPncp <= valor. Para incluir o dia inteiro, use T23-59-59
       responses:
         '200':
           description: Lista de contratações
