@@ -171,6 +171,53 @@ components:
           type: integer
           example: 2
 
+    ChecklistItem:
+      type: object
+      properties:
+        key:
+          type: string
+          example: habilitacao_juridica
+        checked:
+          type: boolean
+          example: false
+
+    ChecklistResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChecklistItem'
+
+    ChecklistUpdateBody:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required:
+              - key
+              - checked
+            properties:
+              key:
+                type: string
+                enum:
+                  - habilitacao_juridica
+                  - regularidade_fiscal
+                  - regularidade_trabalhista
+                  - qualificacao_tecnica
+                  - qualificacao_economico_financeira
+                  - proposta_comercial
+                  - prazos_e_forma_de_envio
+                example: regularidade_fiscal
+              checked:
+                type: boolean
+                example: true
+
 paths:
   /auth/register:
     post:
@@ -376,6 +423,90 @@ paths:
                 $ref: '#/components/schemas/Error'
         '422':
           description: id em formato inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /contratacoes/{id}/checklist:
+    get:
+      tags:
+        - Contratações
+      summary: Retorna o checklist do usuário para a contratação (cria se não existir)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ObjectId da contratação
+      responses:
+        '200':
+          description: Checklist do usuário (todos os itens desmarcados na primeira vez)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChecklistResponse'
+        '401':
+          description: Token não fornecido ou inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Contratação não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: id em formato inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+    put:
+      tags:
+        - Contratações
+      summary: Marca/desmarca itens do checklist do usuário para a contratação
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ObjectId da contratação
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChecklistUpdateBody'
+      responses:
+        '200':
+          description: Checklist atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChecklistResponse'
+        '401':
+          description: Token não fornecido ou inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Contratação não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dados inválidos (id, items ou key/checked)
           content:
             application/json:
               schema:

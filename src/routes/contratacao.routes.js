@@ -1,6 +1,8 @@
 const { Router } = require('express');
-const { query, param } = require('express-validator');
+const { query, param, body } = require('express-validator');
 const { list, findById } = require('../controllers/contratacaoController');
+const { getChecklist, updateChecklist } = require('../controllers/checklistController');
+const CHECKLIST_ITEMS = require('../constants/checklistItems');
 const auth = require('../middlewares/auth');
 const validate = require('../middlewares/validate');
 
@@ -44,7 +46,25 @@ const findByIdRules = [
     .isMongoId().withMessage('id deve ser um ObjectId válido.'),
 ];
 
+const checklistIdRules = [
+  param('id')
+    .isMongoId().withMessage('id deve ser um ObjectId válido.'),
+];
+
+const updateChecklistRules = [
+  param('id')
+    .isMongoId().withMessage('id deve ser um ObjectId válido.'),
+  body('items')
+    .isArray({ min: 1 }).withMessage('items deve ser um array não vazio.'),
+  body('items.*.key')
+    .isIn(CHECKLIST_ITEMS).withMessage('key inválida.'),
+  body('items.*.checked')
+    .isBoolean().withMessage('checked deve ser booleano.'),
+];
+
 router.get('/', auth, validate(listRules), list);
 router.get('/:id', auth, validate(findByIdRules), findById);
+router.get('/:id/checklist', auth, validate(checklistIdRules), getChecklist);
+router.put('/:id/checklist', auth, validate(updateChecklistRules), updateChecklist);
 
 module.exports = router;
