@@ -16,16 +16,12 @@ const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 const contratacaoRoutes = require('./routes/contratacao.routes');
 
-// Falha cedo se a configuração de segurança estiver incompleta.
 validateEnv();
 
 const app = express();
 
-// Cabeçalhos de segurança (XSS, clickjacking, no-sniff, HSTS, etc.).
 app.use(helmet());
 
-// CORS restrito às origens autorizadas (lista separada por vírgula no env).
-// Sem CORS_ORIGINS definido, libera tudo apenas fora de produção.
 const allowedOrigins = (process.env.CORS_ORIGINS || '')
   .split(',')
   .map((o) => o.trim())
@@ -33,7 +29,7 @@ const allowedOrigins = (process.env.CORS_ORIGINS || '')
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // ferramentas server-to-server
+    if (!origin) return callback(null, true);
     if (allowedOrigins.length === 0 && process.env.NODE_ENV !== 'production') {
       return callback(null, true);
     }
@@ -42,19 +38,14 @@ app.use(cors({
   },
 }));
 
-// Limita o tamanho do corpo da requisição (anti-DoS por payload grande).
 app.use(express.json({ limit: '10kb' }));
 
-// Remove operadores NoSQL/dot-notation de body e params.
 app.use(sanitize);
 
-// Log de requisições (sem corpo, para não registrar PII).
 app.use(morgan('combined'));
 
-// Rate limit global.
 app.use(globalLimiter);
 
-// Health check para monitoramento/continuidade de operação.
 app.get('/health', (req, res) => {
   const dbUp = mongoose.connection.readyState === 1;
   res.status(dbUp ? 200 : 503).json({
@@ -66,12 +57,10 @@ app.get('/health', (req, res) => {
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// Rate limit estrito nas rotas de autenticação.
 app.use('/auth', authLimiter, authRoutes);
 app.use('/users', userRoutes);
 app.use('/contratacoes', contratacaoRoutes);
 
-// Handler de erro genérico — não vaza stack trace.
 app.use((err, req, res, next) => {
   if (err && err.message === 'Origem não permitida pelo CORS.') {
     return res.status(403).json({ error: err.message });
@@ -85,14 +74,12 @@ const PORT = process.env.PORT || 3000;
 connect().then(() => {
   const server = app.listen(PORT, () => console.log(`API ouvindo na porta ${PORT}.`));
 
-  // Graceful shutdown: encerra conexões em andamento e fecha o banco.
   const shutdown = async (signal) => {
     console.log(`Recebido ${signal}. Encerrando...`);
     server.close(async () => {
       await mongoose.connection.close();
       process.exit(0);
     });
-    // Força saída se não encerrar em 10s.
     setTimeout(() => process.exit(1), 10000).unref();
   };
 

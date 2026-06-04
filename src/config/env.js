@@ -1,5 +1,3 @@
-// Valida as variáveis de ambiente críticas no boot. Falhar cedo evita subir a
-// aplicação com configuração de segurança fraca (ex.: JWT_SECRET ausente/curto).
 const required = ['MONGO_URI', 'JWT_SECRET'];
 
 const validateEnv = () => {

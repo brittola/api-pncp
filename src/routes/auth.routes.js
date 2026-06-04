@@ -14,8 +14,6 @@ const validateCnpj = require('../utils/cnpj');
 
 const router = Router();
 
-// Política de senha forte: mín. 8 caracteres com maiúscula, minúscula,
-// número e símbolo.
 const strongPassword = (field) =>
   body(field)
     .isStrongPassword({

@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 const CONSENT_VERSION = '1.0';
-const RESET_TOKEN_TTL_MS = 30 * 60 * 1000; // 30 minutos
+const RESET_TOKEN_TTL_MS = 30 * 60 * 1000;
 
 const signToken = (user) =>
   jwt.sign(
@@ -38,7 +38,6 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   const { email, senha } = req.body;
 
-  // Inclui a senha (select:false) explicitamente para poder comparar.
   const user = await User.findOne({ email }).select('+senha');
   if (!user) {
     return res.status(401).json({ error: 'Credenciais inválidas.' });
@@ -61,7 +60,6 @@ const login = async (req, res) => {
   return res.json({ token: signToken(user) });
 };
 
-// Troca de senha autenticada (exige a senha atual).
 const changePassword = async (req, res) => {
   const { senhaAtual, novaSenha } = req.body;
 
@@ -76,14 +74,12 @@ const changePassword = async (req, res) => {
   }
 
   user.senha = novaSenha;
-  user.tokenVersion += 1; // invalida tokens antigos
+  user.tokenVersion += 1;
   await user.save();
 
   return res.json({ message: 'Senha alterada com sucesso. Faça login novamente.' });
 };
 
-// Solicita recuperação de senha. Sempre responde de forma genérica para não
-// revelar se o e-mail existe (anti enumeração de usuários).
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
   const genericResponse = {
@@ -100,8 +96,6 @@ const forgotPassword = async (req, res) => {
   user.resetTokenExpires = new Date(Date.now() + RESET_TOKEN_TTL_MS);
   await user.save();
 
-  // ENVIO DO TOKEN É EXTERNO: em produção, envie `rawToken` por e-mail (link).
-  // Fora de produção, retornamos o token para facilitar testes.
   const response = { ...genericResponse };
   if (process.env.NODE_ENV !== 'production') {
     response.resetToken = rawToken;
@@ -124,7 +118,7 @@ const resetPassword = async (req, res) => {
   user.senha = novaSenha;
   user.resetTokenHash = undefined;
   user.resetTokenExpires = undefined;
-  user.tokenVersion += 1; // invalida tokens antigos
+  user.tokenVersion += 1;
   user.failedAttempts = 0;
   user.lockUntil = undefined;
   await user.save();
@@ -132,7 +126,6 @@ const resetPassword = async (req, res) => {
   return res.json({ message: 'Senha redefinida com sucesso. Faça login novamente.' });
 };
 
-// Logout: invalida todos os tokens emitidos para o usuário.
 const logout = async (req, res) => {
   await User.updateOne({ _id: req.user.id }, { $inc: { tokenVersion: 1 } });
   return res.json({ message: 'Logout efetuado.' });

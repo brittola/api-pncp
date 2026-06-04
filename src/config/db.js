@@ -7,8 +7,6 @@ const connect = async () => {
   mongoose.connection.on('disconnected', () =>
     console.warn('MongoDB desconectado. Tentando reconectar...'));
 
-  // serverSelectionTimeoutMS evita travar indefinidamente; o driver tenta
-  // reconectar automaticamente em caso de queda.
   await mongoose.connect(process.env.MONGO_URI, {
     serverSelectionTimeoutMS: 10000,
   });

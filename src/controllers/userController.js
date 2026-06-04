@@ -2,8 +2,6 @@ const crypto = require('crypto');
 const User = require('../models/User');
 const Checklist = require('../models/Checklist');
 
-// LGPD Art. 18 — direito de acesso e portabilidade.
-// Retorna todos os dados pessoais do titular (e seus checklists) em JSON.
 const getMe = async (req, res) => {
   const user = await User.findById(req.user.id).lean();
   if (!user) {
@@ -27,8 +25,6 @@ const getMe = async (req, res) => {
   });
 };
 
-// LGPD Art. 18 — direito de retificação. Apenas o próprio nome é editável;
-// e-mail e CNPJ são identificadores e exigem fluxo de verificação à parte.
 const updateMe = async (req, res) => {
   const { nome } = req.body;
 
@@ -45,9 +41,6 @@ const updateMe = async (req, res) => {
   return res.json({ id: user._id, nome: user.nome, email: user.email });
 };
 
-// LGPD Art. 18 — direito ao esquecimento.
-// Anonimiza os dados pessoais (preservando integridade referencial e dados
-// estatísticos) e invalida os tokens do usuário. Os checklists são removidos.
 const deleteMe = async (req, res) => {
   const user = await User.findById(req.user.id).select('+senha');
   if (!user) {
@@ -58,10 +51,10 @@ const deleteMe = async (req, res) => {
   user.nome = 'Usuário removido';
   user.email = `anon-${anon}@removido.local`;
   user.cnpj = `00000000${anon.slice(0, 6)}`.slice(0, 14);
-  user.senha = crypto.randomBytes(32).toString('hex'); // hash irreversível ao salvar
+  user.senha = crypto.randomBytes(32).toString('hex');
   user.resetTokenHash = undefined;
   user.resetTokenExpires = undefined;
-  user.tokenVersion += 1; // invalida tokens
+  user.tokenVersion += 1;
   user.anonymizedAt = new Date();
   await user.save();
 

@@ -13,8 +13,6 @@ const auth = async (req, res, next) => {
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Confere a versão do token contra o banco para permitir revogação
-    // (logout, troca de senha e exclusão de conta invalidam tokens antigos).
     const user = await User.findById(payload.id);
     if (!user || user.tokenVersion !== payload.tokenVersion) {
       return res.status(401).json({ error: 'Token inválido ou expirado.' });

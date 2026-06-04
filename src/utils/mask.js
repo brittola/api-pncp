@@ -1,6 +1,3 @@
-// Utilitários de mascaramento/anonimização de dados pessoais (PII).
-// Usados em respostas e logs para reduzir exposição de dados em repouso/trânsito.
-
 const maskEmail = (email) => {
   if (!email || typeof email !== 'string') return email;
   const [user, domain] = email.split('@');
