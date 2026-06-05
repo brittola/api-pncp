@@ -218,6 +218,44 @@ components:
                 type: boolean
                 example: true
 
+    AlertUpdateBody:
+      type: object
+      required:
+        - alertDate
+      properties:
+        alertDate:
+          type: string
+          format: date
+          nullable: true
+          example: "2026-06-30"
+          description: Data do alerta em YYYY-MM-DD, ou null para limpar
+        alertDone:
+          type: boolean
+          example: false
+          description: Marca o alerta como concluído (opcional)
+
+    AlertResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            contratacaoId:
+              type: string
+              example: "665f1c2a9b1e8a0012ab34cd"
+            alertDate:
+              type: string
+              format: date
+              nullable: true
+              example: "2026-06-30"
+            alertDone:
+              type: boolean
+              example: false
+            savedAt:
+              type: string
+              format: date-time
+              example: "2026-06-04T12:00:00.000Z"
+
 paths:
   /auth/register:
     post:
@@ -507,6 +545,52 @@ paths:
                 $ref: '#/components/schemas/Error'
         '422':
           description: Dados inválidos (id, items ou key/checked)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /contratacoes/{id}/alert:
+    patch:
+      tags:
+        - Contratações
+      summary: Define/atualiza o alerta (prazo) do usuário para a contratação
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ObjectId da contratação
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertUpdateBody'
+      responses:
+        '200':
+          description: Alerta salvo/atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertResponse'
+        '401':
+          description: Token não fornecido ou inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Contratação não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dados inválidos (id ou alertDate/alertDone)
           content:
             application/json:
               schema:
