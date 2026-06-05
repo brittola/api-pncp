@@ -2,7 +2,7 @@ const { Router } = require('express');
 const { query, param, body } = require('express-validator');
 const { list, findById } = require('../controllers/contratacaoController');
 const { getChecklist, updateChecklist } = require('../controllers/checklistController');
-const { updateAlert } = require('../controllers/alertController');
+const { save, remove, updateAlert } = require('../controllers/savedOpportunityController');
 const CHECKLIST_ITEMS = require('../constants/checklistItems');
 const auth = require('../middlewares/auth');
 const validate = require('../middlewares/validate');
@@ -83,6 +83,8 @@ router.get('/', auth, validate(listRules), list);
 router.get('/:id', auth, validate(findByIdRules), findById);
 router.get('/:id/checklist', auth, validate(checklistIdRules), getChecklist);
 router.put('/:id/checklist', auth, validate(updateChecklistRules), updateChecklist);
+router.post('/:id/save', auth, validate(findByIdRules), save);
+router.delete('/:id/save', auth, validate(findByIdRules), remove);
 router.patch('/:id/alert', auth, validate(updateAlertRules), updateAlert);
 
 module.exports = router;

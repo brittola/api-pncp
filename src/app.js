@@ -7,6 +7,7 @@ const cors = require('cors');
 
 const authRoutes = require('./routes/auth.routes');
 const contratacaoRoutes = require('./routes/contratacao.routes');
+const meRoutes = require('./routes/me.routes');
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use('/auth', authRoutes);
 app.use('/contratacoes', contratacaoRoutes);
+app.use('/me', meRoutes);
 
 app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Erro interno do servidor.' });

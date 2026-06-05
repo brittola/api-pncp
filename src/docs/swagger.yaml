@@ -256,6 +256,35 @@ components:
               format: date-time
               example: "2026-06-04T12:00:00.000Z"
 
+    SavedOpportunitiesResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              contratacaoId:
+                type: string
+                example: "665f1c2a9b1e8a0012ab34cd"
+              contratacao:
+                allOf:
+                  - $ref: '#/components/schemas/Contratacao'
+                nullable: true
+                description: Dados da contratação salva (null se a contratação não existir mais)
+              alertDate:
+                type: string
+                format: date
+                nullable: true
+                example: "2026-06-30"
+              alertDone:
+                type: boolean
+                example: false
+              savedAt:
+                type: string
+                format: date-time
+                example: "2026-06-04T12:00:00.000Z"
+
 paths:
   /auth/register:
     post:
@@ -550,11 +579,91 @@ paths:
               schema:
                 $ref: '#/components/schemas/ValidationError'
 
+  /contratacoes/{id}/save:
+    post:
+      tags:
+        - Contratações
+      summary: Salva o edital (contratação) na lista do usuário
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ObjectId da contratação
+      responses:
+        '201':
+          description: Edital salvo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertResponse'
+        '200':
+          description: Edital já estava salvo (idempotente)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertResponse'
+        '401':
+          description: Token não fornecido ou inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Contratação não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: id em formato inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+    delete:
+      tags:
+        - Contratações
+      summary: Remove o edital da lista de salvos do usuário
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ObjectId da contratação
+      responses:
+        '204':
+          description: Edital removido dos salvos
+        '401':
+          description: Token não fornecido ou inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Edital não está salvo para este usuário
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: id em formato inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
   /contratacoes/{id}/alert:
     patch:
       tags:
         - Contratações
-      summary: Define/atualiza o alerta (prazo) do usuário para a contratação
+      summary: Define/atualiza o alerta (prazo) do edital salvo pelo usuário
       security:
         - bearerAuth: []
       parameters:
@@ -584,7 +693,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '404':
-          description: Contratação não encontrada
+          description: Edital não está salvo para este usuário
           content:
             application/json:
               schema:
@@ -595,3 +704,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationError'
+
+  /me/saved-opportunities:
+    get:
+      tags:
+        - Editais salvos
+      summary: Lista os editais salvos do usuário (com dados da contratação e alerta)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de editais salvos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedOpportunitiesResponse'
+        '401':
+          description: Token não fornecido ou inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
